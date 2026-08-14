@@ -1,0 +1,28 @@
+{
+  "name": "@ruanhor/redstoneplugin",
+  "description": "pack.description",
+  "version": "0.0.1",
+  "packageManager": "pnpm",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "dev": "mbler watch",
+    "build": "cross-env BUILD_MODULE=release mbler build",
+    "dev-build": "mbler build",
+    "type-check": "mcx-tsc"
+  },
+  "type": "module",
+  "dependencies": {
+    "@minecraft/server": "2.10.0-beta.1.26.40-preview.20",
+    "@minecraft/server-ui": "2.2.0-beta.1.26.40-preview.20",
+    "@bedrock-oss/bedrock-boost": "2.1.0"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "mbler": "^0.2.12-rc.1",
+    "@mbler/mcx-types": "^0.0.4-rc.7",
+    "mcx-tsc": "^0.0.2-rc.1",
+    "rolldown": "^1.1.0"
+  }
+}
