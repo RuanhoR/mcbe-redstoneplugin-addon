@@ -8,7 +8,7 @@
       "textures": "textures/blocks/cutblockicon"
     },
     "cutblockiconmain": {
-      "textures": "textures/blocks/cutblockiconmain"
+      "textures": "textures/blocks/cutblockicon_main"
     },
     "placeblockicon": {
       "textures": "textures/blocks/placeblockicon"

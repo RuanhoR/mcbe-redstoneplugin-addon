@@ -1,1 +1,3 @@
-console.log("ts in minecraft")
+import { initMachineSystem } from "./core/machine";
+
+initMachineSystem();
