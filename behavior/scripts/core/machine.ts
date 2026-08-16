@@ -7,11 +7,14 @@ import {
   Dimension,
   Entity,
   EntityInventoryComponent,
+  ItemComponentTypes,
+  ItemDurabilityComponent,
   Player,
   system,
   Vector3,
   world,
 } from "@minecraft/server";
+import { getBlockLoot } from "@ojang/vanilla-lootdata";
 import { AddonBlock } from "../config";
 import { blockStorage, BlockStorageEntry } from "./blockStorage";
 import { locationKey, locationKeyToData } from "./utils";
@@ -34,17 +37,16 @@ const PLACE_SEARCH_RANGE = 64;
 const pendingEntityChecks = new Set<string>();
 
 /**
- * 机器"up方向"（模型 up 面在世界空间中的朝向）：
- * 依据方块的 facing_direction 而定，并非简单 y+1。
- * 水平朝向 -> 面朝方向；垂直朝向（放在地面/天花板）-> 反向。
+ * 机器工作（up）方向：一律为 facing_direction 的反方向。
+ * 水平：方块朝西 -> 作业在东侧；垂直：放在地面（up）-> 向下，天花板（down）-> 向上。
  */
 const FACING_TO_DIR: Record<string, Vector3> = {
   up: { x: 0, y: -1, z: 0 },
   down: { x: 0, y: 1, z: 0 },
-  north: { x: 0, y: 0, z: -1 },
-  south: { x: 0, y: 0, z: 1 },
-  west: { x: -1, y: 0, z: 0 },
-  east: { x: 1, y: 0, z: 0 },
+  north: { x: 0, y: 0, z: 1 },
+  south: { x: 0, y: 0, z: -1 },
+  west: { x: 1, y: 0, z: 0 },
+  east: { x: -1, y: 0, z: 0 },
 };
 
 /** 原生活塞的 facing_direction 是数字状态 */
@@ -95,17 +97,19 @@ function getPistonFacing(block: Block): Vector3 | undefined {
 
 function spawnContainerEntity(machine: Block): Entity | undefined {
   const dim = machine.dimension;
-  const dir = getOperatingDirection(machine);
-  const behind = sub(machine.location, dir); // 机器背面（开放侧）
-  const above = add(machine.location, { x: 0, y: 1, z: 0 });
-  const candidates = [behind, above];
-  for (const pos of candidates) {
-    const b = dim.getBlock(pos);
-    if (b && b.isAir) {
-      return dim.spawnEntity<typeof CONTAINER_ENTITY_TYPE>(CONTAINER_ENTITY_TYPE, pos);
-    }
+  const center = machine.location; // 直接放在机器方块中心
+  const b = dim.getBlock(center);
+  if (!b) return dim.spawnEntity<typeof CONTAINER_ENTITY_TYPE>(CONTAINER_ENTITY_TYPE, center);
+  if (b.isAir) {
+    return dim.spawnEntity<typeof CONTAINER_ENTITY_TYPE>(CONTAINER_ENTITY_TYPE, center);
   }
-  return dim.spawnEntity<typeof CONTAINER_ENTITY_TYPE>(CONTAINER_ENTITY_TYPE, behind);
+  // 机器方块本身不是空气（占位），实体无法生成在方块内 -> 回退到机器上方
+  const above = add(machine.location, { x: 0, y: 1, z: 0 });
+  const aboveBlock = dim.getBlock(above);
+  if (aboveBlock && aboveBlock.isAir) {
+    return dim.spawnEntity<typeof CONTAINER_ENTITY_TYPE>(CONTAINER_ENTITY_TYPE, above);
+  }
+  return dim.spawnEntity<typeof CONTAINER_ENTITY_TYPE>(CONTAINER_ENTITY_TYPE, center);
 }
 
 function getEntityContainer(entity: Entity): Container | undefined {
@@ -201,15 +205,33 @@ function machinePlace(machine: Block, container: Container): void {
 function machineCut(machine: Block, container: Container): void {
   const toolSlot = findToolSlot(container);
   if (toolSlot === undefined) return; // 背包里没有镐子/铲子
+  const tool = container.getItem(toolSlot);
+  if (!tool) return;
   const dir = getOperatingDirection(machine);
   const targetPos = add(machine.location, dir);
   const target = machine.dimension.getBlock(targetPos);
   if (!target || target.isAir || target.isLiquid) return;
   if (MACHINE_TYPES.has(target.typeId)) return; // 不破坏机器方块
+
+  // 先按原版方块掉落规则计算战利品，再破坏方块
+  const loot = getBlockLoot({
+    type: "block",
+    origin: target,
+    useItem: tool,
+    isSurvival: true,
+    flags: { lootOrb: true },
+  });
   try {
     target.setType("minecraft:air");
   } catch {
     return;
+  }
+  const dim = machine.dimension;
+  for (const item of loot.items) {
+    dim.spawnItem(item, targetPos);
+  }
+  if (loot.orb > 0) {
+    dim.spawnEntity("minecraft:xp_orb", targetPos);
   }
   consumeItem(container, toolSlot);
 }
@@ -244,63 +266,30 @@ function handleMachinePlaced(machine: Block): void {
   blockStorage.placeData(key, { entityId: entity.id, type });
 }
 
+/** 把实体容器内的物品全部甩到世界 */
+function dumpContainerContents(entity: Entity, at: Vector3): void {
+  const container = getEntityContainer(entity);
+  if (!container) return;
+  const dim = entity.dimension;
+  for (let i = 0; i < container.size; i++) {
+    const item = container.getItem(i);
+    if (!item) continue;
+    container.setItem(i);
+    dim.spawnItem(item, at);
+  }
+}
+
 function handleMachineRemoved(location: Vector3, dimension: Dimension): void {
   const key = locationKey(location, dimension);
   const data = blockStorage.deleteData(key);
   if (!data) return;
   const entity = getEntitySafe(data.entityId);
-  if (entity) removeEntitySafe(entity);
+  if (!entity) return;
+  dumpContainerContents(entity, location); // 先掉落物品再移除实体
+  removeEntitySafe(entity);
 }
 
-// ---------- 活塞推动：实体与 key 跟随移动 ----------
-
-function handlePistonMove(
-  block: Block,
-  moveDir: Vector3,
-  processed: Set<string>,
-): void {
-  if (!MACHINE_TYPES.has(block.typeId)) return;
-  const currentKey = locationKey(block.location, block.dimension);
-  if (processed.has(currentKey)) return;
-  const oldKey = locationKey(sub(block.location, moveDir), block.dimension);
-
-  // 情况 1：方块已经被推到新位置，key 还在旧位置 -> 移到当前位置
-  if (blockStorage.has(oldKey) && !blockStorage.has(currentKey)) {
-    moveMachineEntry(block, oldKey, currentKey, block.location);
-    processed.add(currentKey);
-    return;
-  }
-  // 情况 2：事件触发时方块尚未移动 -> 提前把 key/实体移到目标位置
-  if (blockStorage.has(currentKey)) {
-    const newKey = locationKey(add(block.location, moveDir), block.dimension);
-    moveMachineEntry(block, currentKey, newKey, add(block.location, moveDir));
-    processed.add(newKey);
-  }
-}
-
-function moveMachineEntry(
-  block: Block,
-  oldKey: string,
-  newKey: string,
-  newLocation: Vector3,
-): void {
-  const data = blockStorage.getData(oldKey);
-  if (!data) return;
-  const entity = getEntitySafe(data.entityId);
-  if (entity) {
-    const dir = getOperatingDirection(block);
-    const target = sub(newLocation, dir); // 跟随到机器背面
-    try {
-      entity.teleport(target);
-    } catch {
-      /* ignore */
-    }
-    entity.setDynamicProperty("redstoneplugin:machineKey", newKey);
-  }
-  blockStorage.moveData(oldKey, newKey);
-}
-
-// ---------- 维护循环 ----------
+// ---------- 实体 / 容器 ----------
 
 function isNearAnyPlayer(loc: Vector3, players: Player[]): boolean {
   for (const p of players) {
@@ -321,6 +310,65 @@ function resetEntry(entry: BlockStorageEntry, lockHeld: boolean): void {
 
 function cleanupEntry(entry: BlockStorageEntry): void {
   resetEntry(entry, true);
+}
+
+// ---------- 活塞推动：机器方块被推动时 key 跟随移动 ----------
+
+function handlePistonMove(block: Block, moveDir: Vector3): void {
+  if (!MACHINE_TYPES.has(block.typeId)) return;
+  const currentKey = locationKey(block.location, block.dimension);
+
+  // 事件触发时方块通常已经移动 -> 方块在当前位置，key 还在旧位置
+  const oldKey = locationKey(sub(block.location, moveDir), block.dimension);
+  if (blockStorage.has(oldKey) && !blockStorage.has(currentKey)) {
+    moveMachineEntry(block, oldKey, currentKey, block.location);
+    return;
+  }
+  // 事件触发时方块尚未移动 -> 提前把 key 移到目标位置
+  if (blockStorage.has(currentKey)) {
+    const newKey = locationKey(add(block.location, moveDir), block.dimension);
+    moveMachineEntry(block, currentKey, newKey, add(block.location, moveDir));
+  }
+}
+
+function moveMachineEntry(
+  block: Block,
+  oldKey: string,
+  newKey: string,
+  newLocation: Vector3,
+): void {
+  const data = blockStorage.getData(oldKey);
+  if (!data) return;
+  const entity = getEntitySafe(data.entityId);
+  if (entity) {
+    // 实体直接放在新位置方块中心
+    try {
+      entity.teleport(newLocation);
+    } catch {
+      /* ignore */
+    }
+    entity.setDynamicProperty("redstoneplugin:machineKey", newKey);
+  }
+  blockStorage.moveData(oldKey, newKey);
+}
+
+/** 把容器实体对齐到机器方块中心（定时纠偏，应对活塞挤压 / 碰撞导致的位移） */
+function alignEntityToMachine(entity: Entity, machine: Block): void {
+  const target = machine.location;
+  const cur = entity.location;
+  // 误差小于 0.5 格视为已对齐，避免频繁瞬移抖动
+  if (
+    Math.abs(cur.x - target.x) < 0.5 &&
+    Math.abs(cur.y - target.y) < 0.5 &&
+    Math.abs(cur.z - target.z) < 0.5
+  ) {
+    return;
+  }
+  try {
+    entity.teleport(target);
+  } catch {
+    /* ignore */
+  }
 }
 
 /** 实体缺失：延迟 4t 再确认，若仍不存在则重置该机器 */
@@ -382,8 +430,18 @@ function startMaintenanceLoop(): void {
         }
 
         // 方块还在但容器实体不在了 -> 延迟复查，不立即清理
-        if (!getEntitySafe(entry.data.entityId)) {
+        const entity = getEntitySafe(entry.data.entityId);
+        if (!entity) {
           scheduleEntityRecheck(entry.key);
+          continue;
+        }
+
+        // 定时把实体拉回机器方块中心（应对活塞挤压 / 碰撞导致的位移）
+        try {
+          const block = dim.getBlock(loc);
+          if (block) alignEntityToMachine(entity, block);
+        } catch {
+          /* ignore */
         }
       }
     } finally {
@@ -434,9 +492,8 @@ export function initMachineSystem(): void {
     } catch {
       return;
     }
-    const processed = new Set<string>();
     for (const block of attached) {
-      handlePistonMove(block, moveDir, processed);
+      handlePistonMove(block, moveDir);
     }
   });
 

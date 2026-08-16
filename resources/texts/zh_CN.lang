@@ -1,5 +1,5 @@
 pack.description=红石扩展...包括方块放置、方块挖掘
 
 tile.redstoneplugin:placeblock.name=放置器
-tile.redstoneplugin:cutblock.name=切割器
+tile.redstoneplugin:cutblock.name=挖掘器
 entity.redstoneplugin:container_entity.name=容器
