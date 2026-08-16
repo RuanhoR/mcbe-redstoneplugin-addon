@@ -3,6 +3,7 @@ import {
   BlockComponentTypes,
   BlockDynamicPropertiesComponent,
 } from "@minecraft/server";
+import { DP_KEY } from "../config";
 
 export type BlockStorageData = {
   /** 容器实体唯一 id */
@@ -15,9 +16,6 @@ export type BlockStorageEntry = {
   key: string;
   data: BlockStorageData;
 };
-
-/** 方块动态属性键（权威存储，写在机器方块的 block entity 上） */
-const DP_KEY = "redstoneplugin:machine";
 
 /**
  * 中心仓库索引。
