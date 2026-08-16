@@ -125,6 +125,9 @@
       },
       "redstoneplugin:controller": {},
       "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:block_entity": {
+        "dynamic_properties": true
+      },
       "minecraft:material_instances": {
         "north": {
           "texture": "cutblockicon"
