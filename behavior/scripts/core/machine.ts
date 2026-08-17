@@ -2,9 +2,12 @@ import {
   Block,
   BlockComponentRedstoneUpdateEvent,
   BlockCustomComponent,
+  BlockInventoryComponent,
   Container,
   Dimension,
   Entity,
+  ItemComponentTypes,
+  ItemInventoryComponent,
   ItemStack,
   system,
   Vector3,
@@ -62,6 +65,8 @@ function machinePlace(machine: Block, container: Container): void {
       } catch {
         return;
       }
+      // 同步物品库存到方块（如潜影盒内容物）
+      syncItemInventoryToBlock(item, cell);
       consumeItem(container, slot);
       return; // 每次激活只放 1 格
     }
@@ -119,6 +124,28 @@ function machineActivate(machine: Block): void {
 }
 
 // ---------- 放置 / 破坏 ----------
+
+/** 把物品的库存同步到放置后的方块（如潜影盒内容物） */
+function syncItemInventoryToBlock(item: ItemStack, block: Block): void {
+  try {
+    const itemInv = item.getComponent(ItemComponentTypes.Inventory) as
+      | ItemInventoryComponent
+      | undefined;
+    if (!itemInv || !itemInv.container || itemInv.container.size === 0) return;
+    const blockInv = block.getComponent("minecraft:inventory") as
+      | BlockInventoryComponent
+      | undefined;
+    if (!blockInv || !blockInv.container) return;
+    for (let i = 0; i < itemInv.container.size; i++) {
+      const invItem = itemInv.container.getItem(i);
+      if (invItem) {
+        blockInv.container.setItem(i, invItem);
+      }
+    }
+  } catch {
+    /* ignore - 非容器方块无 inventory 组件 */
+  }
+}
 
 function handleMachinePlaced(machine: Block): void {
   const key = locationKey(machine.location, machine.dimension);
