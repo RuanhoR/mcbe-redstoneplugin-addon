@@ -4,6 +4,7 @@ import {
   BlockCustomComponent,
   Container,
   Dimension,
+  Entity,
   ItemStack,
   system,
   Vector3,
@@ -135,12 +136,20 @@ function handleMachinePlaced(machine: Block): void {
 function handleMachineRemoved(location: Vector3, dimension: Dimension): void {
   const key = locationKey(location, dimension);
   const block = dimension.getBlock(location);
-  const data =
+  let data =
     (block && blockStorage.readFromBlock(block)) ||
     blockStorage.deleteData(key);
   if (block) blockStorage.clearBlock(block);
   blockStorage.deleteData(key);
-  if (!data) return;
+
+  // 兜底：活塞推后 DP 可能丢失或 key 不匹配，按位置搜索容器实体
+  if (!data) {
+    const fallback = findContainerEntityNear(location, dimension);
+    if (fallback) {
+      removeEntitySafe(fallback);
+    }
+    return;
+  }
   const entity = getEntitySafe(data.entityId);
   if (!entity) return;
   const container = getEntityContainer(entity);
@@ -160,6 +169,31 @@ function handleMachineRemoved(location: Vector3, dimension: Dimension): void {
     } catch {
       /* ignore */
     }
+  }
+}
+
+/** 在 pos 附近搜索容器实体（兜底清理用） */
+function findContainerEntityNear(
+  pos: Vector3,
+  dim: Dimension,
+): Entity | undefined {
+  try {
+    const entities = dim.getEntities({
+      location: pos,
+      volume: { x: 3, y: 3, z: 3 },
+      type: CONTAINER_ENTITY_TYPE,
+    });
+    for (const e of entities) {
+      if (
+        e.location.x === Math.floor(pos.x) + 0.5 &&
+        e.location.z === Math.floor(pos.z) + 0.5
+      ) {
+        return e;
+      }
+    }
+    return entities[0];
+  } catch {
+    return undefined;
   }
 }
 
