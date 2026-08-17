@@ -1,0 +1,7 @@
+pack.description=Redstone Expansion...includes block placing and block digging
+tile.redstoneplugin:placeblock.name=Placer
+tile.redstoneplugin:cutblock.name=Digger
+entity.redstoneplugin:container_entity.name=Container
+container.chest_minecart=Container
+container.minecart_chest=Container
+pack.name=RedStone Plugin
