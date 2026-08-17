@@ -142,11 +142,29 @@ function handleMachineRemoved(location: Vector3, dimension: Dimension): void {
   if (block) blockStorage.clearBlock(block);
   blockStorage.deleteData(key);
 
-  // 兜底：活塞推后 DP 可能丢失或 key 不匹配，按位置搜索容器实体
+  // 兜底：活塞推后 DP 可能丢失或 key 不匹配，按位置搜容器实体，
+  // 但必须验证 machineKey 动态属性匹配才 kill，防止误伤
   if (!data) {
-    const fallback = findContainerEntityNear(location, dimension);
+    const fallback = findMatchingContainerEntity(location, dimension, key);
     if (fallback) {
+      const items: ItemStack[] = [];
+      const container = getEntityContainer(fallback);
+      if (container) {
+        for (let i = 0; i < container.size; i++) {
+          const item = container.getItem(i);
+          if (!item) continue;
+          container.setItem(i);
+          items.push(item);
+        }
+      }
       removeEntitySafe(fallback);
+      for (const item of items) {
+        try {
+          dimension.spawnItem(item, location);
+        } catch {
+          /* ignore */
+        }
+      }
     }
     return;
   }
@@ -172,10 +190,11 @@ function handleMachineRemoved(location: Vector3, dimension: Dimension): void {
   }
 }
 
-/** 在 pos 附近搜索容器实体（兜底清理用） */
-function findContainerEntityNear(
+/** 在 pos 附近搜索属于本机器的容器实体（兜底清理用，验证 machineKey） */
+function findMatchingContainerEntity(
   pos: Vector3,
   dim: Dimension,
+  expectedKey: string,
 ): Entity | undefined {
   try {
     const entities = dim.getEntities({
@@ -184,17 +203,13 @@ function findContainerEntityNear(
       type: CONTAINER_ENTITY_TYPE,
     });
     for (const e of entities) {
-      if (
-        e.location.x === Math.floor(pos.x) + 0.5 &&
-        e.location.z === Math.floor(pos.z) + 0.5
-      ) {
-        return e;
-      }
+      const entityKey = e.getDynamicProperty("redstoneplugin:machineKey");
+      if (entityKey === expectedKey) return e;
     }
-    return entities[0];
   } catch {
-    return undefined;
+    /* ignore */
   }
+  return undefined;
 }
 
 // ---------- 实体维护 ----------
