@@ -27,7 +27,9 @@ export function damageTool(container: Container, slotIndex: number): void {
     | ItemDurabilityComponent
     | undefined;
   if (!durability || durability.maxDurability <= 0) return;
-
+  if (durability.unbreakable) {
+    return;
+  }
   // Unbreaking 附魔：getDamageChance 返回 0~1 概率，随机判定是否扣耐久
   let unbreakingLevel = 0;
   try {

@@ -26,7 +26,12 @@ import {
   SCAN_RADIUS,
 } from "../config";
 import { blockStorage, BlockStorageEntry } from "./blockStorage";
-import { consumeItem, damageTool, findBlockItemSlot, findToolSlot } from "./container";
+import {
+  consumeItem,
+  damageTool,
+  findBlockItemSlot,
+  findToolSlot,
+} from "./container";
 import {
   add,
   alignEntityToMachine,
@@ -263,7 +268,13 @@ function scheduleEntityRecheck(key: string): void {
     verifyEntityExists(key);
   }, ENTITY_RECHECK_DELAY);
 }
-
+function addFloat(location: Vector3) {
+  return {
+    x: location.x,
+    y: location.y + 0.5,
+    z: location.z,
+  };
+}
 function verifyEntityExists(key: string): void {
   const [loc, dim] = locationKeyToData(key);
   let block: Block | undefined;
@@ -287,7 +298,7 @@ function verifyEntityExists(key: string): void {
       const newKey = locationKey(neighbor.location, neighbor.dimension);
       if (blockStorage.moveData(key, newKey)) {
         const e = getEntitySafe(data.entityId);
-        if (e) teleportEntitySafe(e, neighbor.location);
+        if (e) teleportEntitySafe(e, addFloat(neighbor.location));
       }
       return;
     }
@@ -311,12 +322,17 @@ function handlePistonMove(block: Block, moveDir: Vector3): void {
 
   const oldKey = locationKey(sub(block.location, moveDir), block.dimension);
   if (blockStorage.has(oldKey) && !blockStorage.has(currentKey)) {
-    moveMachineEntry(block, oldKey, currentKey, block.location);
+    moveMachineEntry(block, oldKey, currentKey, addFloat(block.location));
     return;
   }
   if (blockStorage.has(currentKey)) {
     const newKey = locationKey(add(block.location, moveDir), block.dimension);
-    moveMachineEntry(block, currentKey, newKey, add(block.location, moveDir));
+    moveMachineEntry(
+      block,
+      currentKey,
+      newKey,
+      addFloat(add(block.location, moveDir)),
+    );
   }
 }
 
