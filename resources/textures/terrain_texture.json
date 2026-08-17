@@ -4,17 +4,23 @@
   "padding": 8,
   "num_mip_levels": 4,
   "texture_data": {
-    "cutblockicon": {
-      "textures": "textures/blocks/cutblockicon"
+    "cutblock_front": {
+      "textures": "textures/blocks/pickaxe_block_front"
     },
-    "cutblockiconmain": {
-      "textures": "textures/blocks/cutblockicon_main"
+    "cutblock_back": {
+      "textures": "textures/blocks/pickaxe_block_back"
     },
-    "placeblockicon": {
-      "textures": "textures/blocks/placeblockicon"
+    "cutblock_side": {
+      "textures": "textures/blocks/pickaxe_block_side"
     },
-    "placeblockiconmain": {
-      "textures": "textures/blocks/placeblockiconmain"
+    "placeblock_front": {
+      "textures": "textures/blocks/place_block_front"
+    },
+    "placeblock_back": {
+      "textures": "textures/blocks/place_block_back"
+    },
+    "placeblock_side": {
+      "textures": "textures/blocks/place_block_side"
     }
   }
 }

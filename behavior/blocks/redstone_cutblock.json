@@ -130,44 +130,44 @@
       },
       "minecraft:material_instances": {
         "north": {
-          "texture": "cutblockicon"
+          "texture": "cutblock_side"
         },
         "south": {
-          "texture": "cutblockicon"
+          "texture": "cutblock_side"
         },
         "east": {
-          "texture": "cutblockicon"
+          "texture": "cutblock_side"
         },
         "west": {
-          "texture": "cutblockicon"
+          "texture": "cutblock_side"
         },
         "up": {
-          "texture": "cutblockiconmain"
+          "texture": "cutblock_front"
         },
         "down": {
-          "texture": "cutblockicon"
+          "texture": "cutblock_back"
         }
       },
       "minecraft:item_visual": {
         "geometry": "minecraft:geometry.full_block",
         "material_instances": {
           "north": {
-            "texture": "cutblockicon"
+            "texture": "cutblock_side"
           },
           "south": {
-            "texture": "cutblockicon"
+            "texture": "cutblock_side"
           },
           "east": {
-            "texture": "cutblockicon"
+            "texture": "cutblock_side"
           },
           "west": {
-            "texture": "cutblockicon"
+            "texture": "cutblock_side"
           },
           "up": {
-            "texture": "cutblockiconmain"
+            "texture": "cutblock_front"
           },
           "down": {
-            "texture": "cutblockicon"
+            "texture": "cutblock_back"
           }
         }
       }

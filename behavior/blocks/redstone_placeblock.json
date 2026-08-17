@@ -130,44 +130,44 @@
       "minecraft:geometry": "minecraft:geometry.full_block",
       "minecraft:material_instances": {
         "north": {
-          "texture": "placeblockicon"
+          "texture": "placeblock_side"
         },
         "south": {
-          "texture": "placeblockicon"
+          "texture": "placeblock_side"
         },
         "east": {
-          "texture": "placeblockicon"
+          "texture": "placeblock_side"
         },
         "west": {
-          "texture": "placeblockicon"
+          "texture": "placeblock_side"
         },
         "up": {
-          "texture": "placeblockiconmain"
+          "texture": "placeblock_front"
         },
         "down": {
-          "texture": "placeblockicon"
+          "texture": "placeblock_back"
         }
       },
       "minecraft:item_visual": {
         "geometry": "minecraft:geometry.full_block",
         "material_instances": {
           "north": {
-            "texture": "placeblockicon"
+            "texture": "placeblock_side"
           },
           "south": {
-            "texture": "placeblockicon"
+            "texture": "placeblock_side"
           },
           "east": {
-            "texture": "placeblockicon"
+            "texture": "placeblock_side"
           },
           "west": {
-            "texture": "placeblockicon"
+            "texture": "placeblock_side"
           },
           "up": {
-            "texture": "placeblockiconmain"
+            "texture": "placeblock_front"
           },
           "down": {
-            "texture": "placeblockicon"
+            "texture": "placeblock_back"
           }
         }
       }
