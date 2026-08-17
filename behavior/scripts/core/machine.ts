@@ -26,7 +26,12 @@ import {
   SCAN_RADIUS,
 } from "../config";
 import { blockStorage, BlockStorageEntry } from "./blockStorage";
-import { consumeItem, damageTool, findBlockItemSlot, findToolSlot } from "./container";
+import {
+  consumeItem,
+  damageTool,
+  findBlockItemSlot,
+  findToolSlot,
+} from "./container";
 import {
   add,
   alignEntityToMachine,
@@ -76,15 +81,24 @@ function machinePlace(machine: Block, container: Container): void {
 
 function machineCut(machine: Block, container: Container): void {
   const toolSlot = findToolSlot(container);
-  if (toolSlot === undefined) return;
+  if (toolSlot === undefined) {
+    console.warn(`[CUT] ${JSON.stringify(machine.location)} no tool`);
+    return;
+  }
   const tool = container.getItem(toolSlot);
   if (!tool) return;
   const dir = getOperatingDirection(machine);
   const targetPos = add(machine.location, dir);
   const target = machine.dimension.getBlock(targetPos);
-  if (!target || target.isAir || target.isLiquid) return;
-  if (MACHINE_TYPES.has(target.typeId)) return;
-
+  if (!target || target.isAir || target.isLiquid) {
+    console.warn(`[CUT] ${JSON.stringify(machine.location)} target empty/liquid`);
+    return;
+  }
+  if (MACHINE_TYPES.has(target.typeId)) {
+    console.warn(`[CUT] ${JSON.stringify(machine.location)} target is machine: ${target.typeId}`);
+    return;
+  }
+  console.warn(`[CUT] ${JSON.stringify(machine.location)} mining ${target.typeId} at ${JSON.stringify(targetPos)}`);
   const loot = getBlockLoot({
     type: "block",
     origin: target,
@@ -111,11 +125,18 @@ function machineCut(machine: Block, container: Container): void {
 
 function machineActivate(machine: Block): void {
   const data = blockStorage.readFromBlock(machine);
+  console.warn(`[ACT] ${JSON.stringify(machine.location)} data=${JSON.stringify(data)}`);
   if (!data) return;
   const entity = getEntitySafe(data.entityId);
-  if (!entity) return;
+  if (!entity) {
+    console.warn(`[ACT] ${JSON.stringify(machine.location)} entity not found: ${data.entityId}`);
+    return;
+  }
   const container = getEntityContainer(entity);
-  if (!container) return;
+  if (!container) {
+    console.warn(`[ACT] ${JSON.stringify(machine.location)} container empty`);
+    return;
+  }
   if (data.type === "place") {
     machinePlace(machine, container);
   } else {
@@ -400,6 +421,11 @@ function startMaintenanceLoop(): void {
 
 const redstoneController: BlockCustomComponent = {
   onRedstoneUpdate(event: BlockComponentRedstoneUpdateEvent): void {
+    // console.log(
+    //   event.powerLevel,
+    //   event.previousPowerLevel,
+    //   JSON.stringify(event.block.location),
+    // );
     if (event.powerLevel < 1) return;
     if (!MACHINE_TYPES.has(event.block.typeId)) return;
     machineActivate(event.block);
