@@ -17,7 +17,7 @@
     "@bedrock-oss/bedrock-boost": "2.1.0",
     "@minecraft/server": "2.10.0-beta.1.26.40-preview.20",
     "@minecraft/server-ui": "2.2.0-beta.1.26.40-preview.20",
-    "@ojang/vanilla-lootdata": "0.0.1-rc.4"
+    "@ojang/vanilla-lootdata": "0.0.1-rc.5"
   },
   "devDependencies": {
     "@mbler/mcx-types": "^0.0.4-rc.7",
