@@ -5,6 +5,7 @@ import {
   BlockInventoryComponent,
   Container,
   Dimension,
+  EnchantmentType,
   Entity,
   ItemComponentTypes,
   ItemInventoryComponent,
@@ -13,7 +14,7 @@ import {
   Vector3,
   world,
 } from "@minecraft/server";
-import { getBlockLoot } from "@ojang/vanilla-lootdata";
+import { getBlockLoot, setMCBENative, toNative } from "@ojang/vanilla-lootdata";
 import { AddonBlock } from "../config";
 import {
   CONTAINER_ENTITY_TYPE,
@@ -104,7 +105,7 @@ function machineCut(machine: Block, container: Container): void {
   }
   const dim = machine.dimension;
   for (const item of loot.items) {
-    dim.spawnItem(item, targetPos);
+    dim.spawnItem(toNative(item), targetPos);
   }
   if (loot.orb > 0) {
     dim.spawnEntity("minecraft:xp_orb", targetPos);
@@ -425,6 +426,8 @@ const redstoneController: BlockCustomComponent = {
 // ---------- 初始化 ----------
 
 export function initMachineSystem(): void {
+  setMCBENative({ ItemStack, EnchantmentType });
+
   system.beforeEvents.startup.subscribe((initEvent) => {
     initEvent.blockComponentRegistry.registerCustomComponent(
       CUSTOM_COMPONENT_ID,
