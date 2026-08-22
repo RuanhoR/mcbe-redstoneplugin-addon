@@ -247,7 +247,7 @@ function findMatchingContainerEntity(
 
 // ---------- 实体维护 ----------
 
-function resetEntry(entry: BlockStorageEntry, lockHeld: boolean): void {
+function resetEntry(entry: BlockStorageEntry): void {
   const entity = getEntitySafe(entry.data.entityId);
   if (entity) removeEntitySafe(entity);
   try {
@@ -257,8 +257,7 @@ function resetEntry(entry: BlockStorageEntry, lockHeld: boolean): void {
   } catch {
     /* ignore */
   }
-  if (lockHeld) blockStorage.deleteDataUnlocked(entry.key);
-  else blockStorage.deleteData(entry.key);
+  blockStorage.deleteData(entry.key);
 }
 
 function scheduleEntityRecheck(key: string): void {
@@ -304,11 +303,11 @@ function verifyEntityExists(key: string): void {
       return;
     }
     if (hasMovingBlockNearby(loc, dim)) return;
-    resetEntry({ key, data }, false);
+    resetEntry({ key, data });
     return;
   }
   if (!getEntitySafe(data.entityId)) {
-    resetEntry({ key, data }, false);
+    resetEntry({ key, data });
   }
 }
 
@@ -378,37 +377,32 @@ function maintenanceHandleMachine(block: Block): void {
 
 function startMaintenanceLoop(): void {
   system.runInterval(() => {
-    if (!blockStorage.tryLock()) return;
-    try {
-      const players = world.getAllPlayers();
-      for (const p of players) {
-        const dim = p.dimension;
-        let minY = -64;
-        let maxY = 320;
-        try {
-          const range = dim.heightRange;
-          minY = range.min;
-          maxY = range.max;
-        } catch {
-          /* ignore */
-        }
-        const py = Math.floor(p.location.y);
-        const y0 = Math.max(py - SCAN_RADIUS, minY);
-        const y1 = Math.min(py + SCAN_RADIUS, maxY);
-        for (let dx = -SCAN_RADIUS; dx <= SCAN_RADIUS; dx++) {
-          for (let dz = -SCAN_RADIUS; dz <= SCAN_RADIUS; dz++) {
-            for (let y = y0; y <= y1; y++) {
-              const x = Math.floor(p.location.x) + dx;
-              const z = Math.floor(p.location.z) + dz;
-              const block = dim.getBlock({ x, y, z });
-              if (!block || !MACHINE_TYPES.has(block.typeId)) continue;
-              maintenanceHandleMachine(block);
-            }
+    const players = world.getAllPlayers();
+    for (const p of players) {
+      const dim = p.dimension;
+      let minY = -64;
+      let maxY = 320;
+      try {
+        const range = dim.heightRange;
+        minY = range.min;
+        maxY = range.max;
+      } catch {
+        /* ignore */
+      }
+      const py = Math.floor(p.location.y);
+      const y0 = Math.max(py - SCAN_RADIUS, minY);
+      const y1 = Math.min(py + SCAN_RADIUS, maxY);
+      for (let dx = -SCAN_RADIUS; dx <= SCAN_RADIUS; dx++) {
+        for (let dz = -SCAN_RADIUS; dz <= SCAN_RADIUS; dz++) {
+          for (let y = y0; y <= y1; y++) {
+            const x = Math.floor(p.location.x) + dx;
+            const z = Math.floor(p.location.z) + dz;
+            const block = dim.getBlock({ x, y, z });
+            if (!block || !MACHINE_TYPES.has(block.typeId)) continue;
+            maintenanceHandleMachine(block);
           }
         }
       }
-    } finally {
-      blockStorage.unlock();
     }
   }, MAINTENANCE_INTERVAL);
 }

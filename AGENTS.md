@@ -15,7 +15,7 @@ Always run `type-check` then `build` before considering work done.
 
 - `behavior/scripts/index.ts` — entry; only calls `initMachineSystem()`.
 - `behavior/scripts/core/machine.ts` — the whole system: redstone activation, place/cut, container-entity lifecycle, piston moves, 10t maintenance loop.
-- `behavior/scripts/core/blockStorage.ts` — in-memory `Map` (machine location key → entity id/type) with a write lock. Loop holds the lock; only the loop may call `deleteDataUnlocked`.
+- `behavior/scripts/core/blockStorage.ts` — in-memory `Map` (machine location key → entity id/type) indexing the authoritative block dynamic properties. SAPI is single-threaded run-to-completion; no locking needed.
 - `behavior/scripts/core/utils.ts` — `locationKey`/`locationKeyToData` (key format `"${dim.id}(*${x}(*${y}(*${z}"`).
 - `behavior/scripts/core/fileSystem.ts`, `worldFileSystem.ts`, `path.ts` — legacy, not imported by any active code. Don't build on them.
 - `behavior/blocks/*.json` — block defs (`format_version: "1.26.40"`, `minecraft:placement_direction` trait).
