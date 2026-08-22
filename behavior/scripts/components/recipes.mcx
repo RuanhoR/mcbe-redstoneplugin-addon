@@ -1,0 +1,39 @@
+<Component>
+  <recipes>
+    <recipe id="cutblock.json">cutBlockRecipe</recipe>
+    <recipe id="placeblock.json">placeBlockRecipe</recipe>
+  </recipes>
+</Component>
+<script lang="ts">
+import { RecipeComponent } from "@mbler/mcx-component";
+
+export const cutBlockRecipe = new RecipeComponent({
+  format: "1.17.0",
+  id: "redstoneplugin:cutblock_recipe",
+  type: "shaped",
+  tags: ["crafting_table"],
+  pattern: ["III", "PRR", "CCR"],
+  key: {
+    I: { item: "minecraft:iron_ingot" },
+    P: { item: "minecraft:wooden_pickaxe" },
+    R: { item: "minecraft:redstone" },
+    C: { item: "minecraft:cobblestone" },
+  },
+  result: { item: "redstoneplugin:cutblock" },
+});
+
+export const placeBlockRecipe = new RecipeComponent({
+  format: "1.17.0",
+  id: "redstoneplugin:placeblock_recipe",
+  type: "shaped",
+  tags: ["crafting_table"],
+  pattern: ["III", "DRR", "SSR"],
+  key: {
+    I: { item: "minecraft:iron_ingot" },
+    D: { item: "minecraft:dispenser" },
+    R: { item: "minecraft:redstone" },
+    S: { item: "minecraft:stone" },
+  },
+  result: { item: "redstoneplugin:placeblock" },
+});
+</script>

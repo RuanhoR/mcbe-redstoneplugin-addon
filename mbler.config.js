@@ -15,7 +15,7 @@ export default defineConfig({
   script: {
     main: "index.ts",
     ui: true,
-    lang: "ts",
+    lang: "mcx",
     UseBeta: true,
   },
   build: {
