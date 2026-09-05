@@ -6,45 +6,33 @@
 </Component>
 <script lang="ts">
 import { BlockComponent } from "@mbler/mcx-component";
-
 type Rotation = [number, number, number];
-
 const HORIZONTAL_ROTATIONS: Record<string, Rotation> = {
   north: [-90, 180, 0],
   south: [-90, 0, 0],
   west: [-90, -90, 0],
   east: [-90, 90, 0],
 };
-
 const UP_ROTATIONS: Record<string, Rotation> = {
   north: [180, 180, 0],
   south: [180, 0, 0],
   west: [180, -90, 0],
   east: [180, 90, 0],
 };
-
 const DOWN_ROTATIONS: Record<string, Rotation> = {
   north: [0, 180, 0],
   south: [0, 0, 0],
   west: [0, -90, 0],
   east: [0, 90, 0],
 };
-
 const CUSTOM_COMPONENT_ID = "redstoneplugin:controller";
-
 interface MachineTextures {
   front: string;
   back: string;
   side: string;
 }
-
 function makeMachineBlock(id: string, textures: MachineTextures) {
-  const block = new BlockComponent({
-    format: "1.26.40",
-    id,
-    menu_category: { category: "construction" },
-  });
-
+  const block = new BlockComponent({ format: "1.26.40", id, menu_category: { category: "construction" }, });
   block.setTraits({
     "minecraft:placement_direction": {
       enabled_states: [
@@ -71,8 +59,7 @@ function makeMachineBlock(id: string, textures: MachineTextures) {
       `query.block_state('minecraft:facing_direction') == 'down' && query.block_state('minecraft:cardinal_direction') == '${dir}'`,
       { "minecraft:transformation": { rotation } },
     );
-  }
-
+  };
   block.setCollisionBox({ origin: [-8, 0, -8], size: [16, 16, 16] });
   block.setRedstoneConsumer({ min_power: 1 });
   block.setCustomComponents([CUSTOM_COMPONENT_ID]);
@@ -95,7 +82,6 @@ function makeMachineBlock(id: string, textures: MachineTextures) {
 
   return block;
 }
-
 export const cutBlock = makeMachineBlock("redstoneplugin:cutblock", {
   front: "cutblock_front",
   back: "cutblock_back",
