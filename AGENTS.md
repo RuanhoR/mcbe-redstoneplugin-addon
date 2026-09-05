@@ -1,10 +1,12 @@
 # AGENTS.md
 
-Minecraft Bedrock addon (behavior + resource packs) for redstone-driven block place/cut "machines". Built with [mbler](https://github.com/RuanhoR/mbler). No tests exist; no CI.
+Minecraft Bedrock addon (behavior + resource packs) for redstone-driven block place/cut "machines". Built with [mbler](https://github.com/RuanhoR/mbler). Unit tests live in `tests/` (vitest); no CI.
 
 ## Commands (order matters)
 
 - `npm run type-check` → `mcx-tsc` (strict). Fastest correctness check.
+- `npm run lint` → ESLint (TS sources + `.mcx` via `@mbler/eslint-plugin-mcx`). `npm run lint:fix` autofixes.
+- `npm run test` → vitest (`tests/**/*.spec.ts`). `@minecraft/server`(+`-ui`) are aliased to `tests/mocks/minecraft-server.ts` because the beta runtime packages cannot load under Node; only test pure helpers.
 - `npm run build` → release build; **only** this writes `dist/` and `dist.mcaddon`.
 - `npm run dev-build` → **does NOT touch `dist/`**. With `outGameOnDev: true` it outputs to the Minecraft game's `development_behavior_packs`/`development_resource_packs`. Don't inspect `dist/` after this; test by reloading the world.
 - `npm run dev` → `mbler watch`.

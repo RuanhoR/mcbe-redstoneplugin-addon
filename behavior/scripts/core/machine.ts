@@ -169,7 +169,7 @@ function handleMachinePlaced(machine: Block): void {
 function handleMachineRemoved(location: Vector3, dimension: Dimension): void {
   const key = locationKey(location, dimension);
   const block = dimension.getBlock(location);
-  let data =
+  const data =
     (block && blockStorage.readFromBlock(block)) ||
     blockStorage.deleteData(key);
   if (block) blockStorage.clearBlock(block);
@@ -352,8 +352,6 @@ function moveMachineEntry(
   }
   blockStorage.moveData(oldKey, newKey);
 }
-
-// ---------- 维护循环 ----------
 
 function maintenanceHandleMachine(block: Block): void {
   const key = locationKey(block.location, block.dimension);

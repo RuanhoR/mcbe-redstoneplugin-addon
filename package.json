@@ -10,7 +10,10 @@
     "dev": "mbler watch",
     "build": "cross-env BUILD_MODULE=release mbler build",
     "dev-build": "mbler build",
-    "type-check": "mcx-tsc"
+    "type-check": "mcx-tsc",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "vitest run"
   },
   "type": "module",
   "dependencies": {
@@ -27,6 +30,13 @@
     "cross-env": "^10.1.0",
     "mbler": "0.3.1-dev.1",
     "mcx-tsc": "^0.0.2-rc.5",
-    "rolldown": "^1.1.0"
+    "rolldown": "^1.1.0",
+    "@mbler/eslint-plugin-mcx": "link:../../mcx-core/packages/eslint-plugin-mcx",
+    "@mbler/vite-plugin-mcx": "link:../../mcx-core/packages/vite-plugin-mcx",
+    "@typescript-eslint/eslint-plugin": "^8.59.1",
+    "@typescript-eslint/parser": "^8.59.1",
+    "eslint": "^9.17.0",
+    "typescript": "5.9.3",
+    "vitest": "^4.1.8"
   }
 }
