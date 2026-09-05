@@ -35,14 +35,11 @@ importers:
         specifier: 0.0.4-rc.1
         version: 0.0.4-rc.1(@minecraft/server-ui@2.2.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/server@2.10.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/vanilla-data@1.26.40)))(@minecraft/server@2.10.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/vanilla-data@1.26.40))
       '@mbler/mcx-core':
-        specifier: 1.1.5-dev.1
-        version: 1.1.5-dev.1(@minecraft/server-ui@2.2.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/server@2.10.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/vanilla-data@1.26.40)))(@minecraft/server@2.10.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/vanilla-data@1.26.40))
+        specifier: link:../../mcx-core/packages/core
+        version: link:../../mcx-core/packages/core
       '@mbler/mcx-types':
         specifier: 0.0.4-rc.8
         version: 0.0.4-rc.8(@minecraft/server-ui@2.2.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/server@2.10.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/vanilla-data@1.26.40)))(@minecraft/server@2.10.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/vanilla-data@1.26.40))
-      '@mbler/vite-plugin-mcx':
-        specifier: link:../../mcx-core/packages/vite-plugin-mcx
-        version: link:../../mcx-core/packages/vite-plugin-mcx
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.59.1
         version: 8.69.0(@typescript-eslint/parser@8.69.0(eslint@9.39.5)(typescript@5.9.3))(eslint@9.39.5)(typescript@5.9.3)
@@ -57,7 +54,7 @@ importers:
         version: 9.39.5
       mbler:
         specifier: 0.3.1-dev.1
-        version: 0.3.1-dev.1(@mbler/mcx-core@1.1.5-dev.1(@minecraft/server-ui@2.2.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/server@2.10.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/vanilla-data@1.26.40)))(@minecraft/server@2.10.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/vanilla-data@1.26.40)))(@volar/typescript@2.4.28)(rolldown@1.2.4)(typescript@5.9.3)
+        version: 0.3.1-dev.1(@mbler/mcx-core@..+mcx-core+packages+core)(@volar/typescript@2.4.28)(rolldown@1.2.4)(typescript@5.9.3)
       mcx-tsc:
         specifier: ^0.0.2-rc.5
         version: 0.0.2-rc.5(@minecraft/server-ui@2.2.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/server@2.10.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/vanilla-data@1.26.40)))(@minecraft/server@2.10.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/vanilla-data@1.26.40))(@volar/language-service@2.4.28)(typescript@5.9.3)
@@ -186,9 +183,6 @@ packages:
 
   '@mbler/mcx-core@0.1.3-rc.16':
     resolution: {integrity: sha512-pe9kxgQEzdfskvXWS9dQeyyJO/o4o70I+QhrAAk1qmHfW626B27Zz6WhnyBH3Vui6ntsxpn4HFf2n9E2ZDRqsw==}
-
-  '@mbler/mcx-core@1.1.5-dev.1':
-    resolution: {integrity: sha512-TiCDApLyebGDf0fSeXTrNrgKSNUlWO522svzgZeVDqE8LmPMfVrNBQvCYazQeFgdCwCQ1ICaTQvBX5thM22ikw==}
 
   '@mbler/mcx-server@0.1.5-rc.0':
     resolution: {integrity: sha512-XcV6ZtBzH5uJ2gmUF/yJQjdGXB9y/sGkZjrcSSBEVv/cXkmXwQJcuXBq3wrpCJNSf3KERMo4WGpHQTmYtuR68g==}
@@ -1480,21 +1474,6 @@ snapshots:
       - '@minecraft/server'
       - '@minecraft/server-ui'
 
-  '@mbler/mcx-core@1.1.5-dev.1(@minecraft/server-ui@2.2.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/server@2.10.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/vanilla-data@1.26.40)))(@minecraft/server@2.10.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/vanilla-data@1.26.40))':
-    dependencies:
-      '@babel/generator': 7.28.5
-      '@babel/parser': 7.28.5
-      '@babel/types': 7.28.6
-      '@mbler/mcx-types': 0.0.4-rc.8(@minecraft/server-ui@2.2.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/server@2.10.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/vanilla-data@1.26.40)))(@minecraft/server@2.10.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/vanilla-data@1.26.40))
-      '@volar/language-core': 2.4.28
-      '@vue/compiler-core': 3.5.41
-      '@vue/compiler-sfc': 3.5.41
-      magic-string: 0.30.21
-      typescript: 5.9.3
-    transitivePeerDependencies:
-      - '@minecraft/server'
-      - '@minecraft/server-ui'
-
   '@mbler/mcx-server@0.1.5-rc.0(@minecraft/server-ui@2.2.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/server@2.10.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/vanilla-data@1.26.40)))(@minecraft/server@2.10.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/vanilla-data@1.26.40))(@volar/language-service@2.4.28)':
     dependencies:
       '@babel/parser': 7.29.8
@@ -2181,9 +2160,9 @@ snapshots:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  mbler@0.3.1-dev.1(@mbler/mcx-core@1.1.5-dev.1(@minecraft/server-ui@2.2.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/server@2.10.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/vanilla-data@1.26.40)))(@minecraft/server@2.10.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/vanilla-data@1.26.40)))(@volar/typescript@2.4.28)(rolldown@1.2.4)(typescript@5.9.3):
+  mbler@0.3.1-dev.1(@mbler/mcx-core@..+mcx-core+packages+core)(@volar/typescript@2.4.28)(rolldown@1.2.4)(typescript@5.9.3):
     dependencies:
-      '@mbler/mcx-core': 1.1.5-dev.1(@minecraft/server-ui@2.2.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/server@2.10.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/vanilla-data@1.26.40)))(@minecraft/server@2.10.0-beta.1.26.40-preview.20(@minecraft/common@1.3.0)(@minecraft/vanilla-data@1.26.40))
+      '@mbler/mcx-core': link:../../mcx-core/packages/core
       adm-zip: 0.6.0
       chokidar: 5.0.0
       mcbe-brarchive-ts: 0.1.3(@volar/typescript@2.4.28)(rolldown@1.2.4)(typescript@5.9.3)

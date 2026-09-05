@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@mbler/mcx-component": "0.0.4-rc.1",
-    "@mbler/mcx-core": "1.1.5-dev.1",
+    "@mbler/mcx-core": "link:../../mcx-core/packages/core",
     "@mbler/mcx-types": "0.0.4-rc.8",
     "@mbler/mcx": "0.0.6-rc.1",
     "cross-env": "^10.1.0",
@@ -32,7 +32,6 @@
     "mcx-tsc": "^0.0.2-rc.5",
     "rolldown": "^1.1.0",
     "@mbler/eslint-plugin-mcx": "link:../../mcx-core/packages/eslint-plugin-mcx",
-    "@mbler/vite-plugin-mcx": "link:../../mcx-core/packages/vite-plugin-mcx",
     "@typescript-eslint/eslint-plugin": "^8.59.1",
     "@typescript-eslint/parser": "^8.59.1",
     "eslint": "^9.17.0",

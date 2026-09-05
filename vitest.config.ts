@@ -2,7 +2,7 @@ import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
 import { defineConfig } from "vitest/config";
-import { mcxPlugin } from "@mbler/vite-plugin-mcx";
+import { vitePlugin } from "@mbler/mcx-core";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const serverMock = path.join(__dirname, "tests", "mocks", "minecraft-server.ts");
@@ -17,7 +17,7 @@ export default defineConfig({
     },
   },
   plugins: [
-    mcxPlugin(
+    vitePlugin(
       {
         // bare ids (e.g. @mbler/mcx injected by compiled .mcx) resolve here
         moduleDir: path.join(__dirname, "node_modules"),
