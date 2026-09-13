@@ -23,18 +23,19 @@
     "@ojang/vanilla-lootdata": "0.0.1-rc.5"
   },
   "devDependencies": {
+    "@mbler/eslint-plugin-mcx": "0.0.1-rc.1",
+    "@mbler/mcx": "0.0.6-rc.2",
     "@mbler/mcx-component": "0.0.4-rc.3",
     "@mbler/mcx-core": "1.1.5-rc.1",
     "@mbler/mcx-types": "0.0.4-rc.9",
-    "@mbler/mcx": "0.0.6-rc.2",
+    "@mbler/mfd": "0.0.1-alpha.3",
+    "@typescript-eslint/eslint-plugin": "^8.59.1",
+    "@typescript-eslint/parser": "^8.59.1",
     "cross-env": "^10.1.0",
+    "eslint": "^9.17.0",
     "mbler": "0.3.1-rc.1",
     "mcx-tsc": "^0.0.2-rc.5",
     "rolldown": "^1.1.0",
-    "@mbler/eslint-plugin-mcx": "0.0.1-rc.1",
-    "@typescript-eslint/eslint-plugin": "^8.59.1",
-    "@typescript-eslint/parser": "^8.59.1",
-    "eslint": "^9.17.0",
     "typescript": "5.9.3",
     "vitest": "^4.1.8"
   }
