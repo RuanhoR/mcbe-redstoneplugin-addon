@@ -64,7 +64,7 @@ function makeMachineBlock(id: string, textures: MachineTextures) {
   block.setRedstoneConsumer({ min_power: 1 });
   block.setCustomComponents([CUSTOM_COMPONENT_ID]);
   block.setGeometry("minecraft:geometry.full_block");
-  block.setBlockEntity({ dynamic_properties: true });
+  (block as any).setBlockEntity({ dynamic_properties: true, container: { slot_count: 27 } });
 
   const materialInstances = {
     north: { texture: textures.side },

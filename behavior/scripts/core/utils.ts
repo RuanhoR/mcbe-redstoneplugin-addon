@@ -1,15 +1,16 @@
 import {
   Block,
+  BlockComponentTypes,
+  BlockInventoryComponent,
+  Container,
   Dimension,
   Entity,
-  EntityInventoryComponent,
   Vector3,
-  world,
   World,
+  world,
 } from "@minecraft/server";
 import { KV, KVValue } from "../types";
 import {
-  CONTAINER_ENTITY_TYPE,
   FACING_TO_DIR,
   MACHINE_TYPES,
   PISTON_FACING_NUM,
@@ -95,83 +96,14 @@ export function getPistonFacing(block: Block): Vector3 | undefined {
   return undefined;
 }
 
-// ---------- 实体 ----------
+// ---------- 方块容器 ----------
 
-export function getEntitySafe(id: string): Entity | undefined {
-  try {
-    return world.getEntity(id);
-  } catch {
-    return undefined;
-  }
-}
-
-export function removeEntitySafe(entity: Entity): void {
-  try {
-    entity.remove();
-  } catch {
-    try {
-      entity.kill();
-    } catch {
-      /* ignore */
-    }
-  }
-}
-
-export function teleportEntitySafe(entity: Entity, loc: Vector3): void {
-  try {
-    entity.teleport(loc);
-  } catch {
-    /* ignore */
-  }
-}
-
-export function getEntityContainer(entity: Entity) {
-  const inv = entity.getComponent(EntityInventoryComponent.componentId) as
-    | EntityInventoryComponent
+/** 获取方块的容器（minecraft:block_entity 的 container） */
+export function getBlockContainer(block: Block): Container | undefined {
+  const inv = block.getComponent(BlockComponentTypes.Inventory) as
+    | BlockInventoryComponent
     | undefined;
   return inv?.container;
-}
-
-export function spawnContainerEntity(machine: Block): Entity | undefined {
-  const dim = machine.dimension;
-  const center = machine.location;
-  const b = dim.getBlock(center);
-  if (!b)
-    return dim.spawnEntity<typeof CONTAINER_ENTITY_TYPE>(
-      CONTAINER_ENTITY_TYPE,
-      center,
-    );
-  if (b.isAir) {
-    return dim.spawnEntity<typeof CONTAINER_ENTITY_TYPE>(
-      CONTAINER_ENTITY_TYPE,
-      center,
-    );
-  }
-  const above = add(machine.location, { x: 0, y: 1, z: 0 });
-  const aboveBlock = dim.getBlock(above);
-  if (aboveBlock && aboveBlock.isAir) {
-    return dim.spawnEntity<typeof CONTAINER_ENTITY_TYPE>(
-      CONTAINER_ENTITY_TYPE,
-      above,
-    );
-  }
-  return dim.spawnEntity<typeof CONTAINER_ENTITY_TYPE>(
-    CONTAINER_ENTITY_TYPE,
-    center,
-  );
-}
-
-export function alignEntityToMachine(entity: Entity, machine: Block): void {
-  const target = machine.location;
-  const cur = entity.location;
-  if (
-    Math.abs(cur.x - target.x) < 0.5 &&
-    Math.abs(cur.y - target.y) < 0.5 &&
-    Math.abs(cur.z - target.z) < 0.5
-  ) {
-    return;
-  }
-  teleportEntitySafe(entity, target);
 }
 
 // ---------- 方块搜索 ----------

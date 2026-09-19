@@ -6,7 +6,6 @@ import {
   Container,
   Dimension,
   EnchantmentType,
-  Entity,
   ItemComponentTypes,
   ItemInventoryComponent,
   ItemStack,
@@ -17,10 +16,7 @@ import {
 import { getBlockLoot, setMCBENative, toNative } from "@ojang/vanilla-lootdata";
 import { AddonBlock } from "../config";
 import {
-  CONTAINER_ENTITY_TYPE,
   CUSTOM_COMPONENT_ID,
-  DP_KEY,
-  ENTITY_RECHECK_DELAY,
   MACHINE_TYPES,
   MAINTENANCE_INTERVAL,
   PLACE_SEARCH_RANGE,
@@ -35,23 +31,16 @@ import {
 } from "./container";
 import {
   add,
-  alignEntityToMachine,
   findMachineBlockNeighbor,
-  getEntityContainer,
-  getEntitySafe,
+  getBlockContainer,
   getOperatingDirection,
   getPistonFacing,
   hasMovingBlockNearby,
   locationKey,
   locationKeyToData,
   neg,
-  removeEntitySafe,
-  spawnContainerEntity,
   sub,
-  teleportEntitySafe,
 } from "./utils";
-
-const pendingEntityChecks = new Set<string>();
 
 // ---------- place / cut 执行 ----------
 
@@ -71,7 +60,6 @@ function machinePlace(machine: Block, container: Container): void {
       } catch {
         return;
       }
-      // 同步物品库存到方块（如潜影盒内容物）
       syncItemInventoryToBlock(item, cell);
       consumeItem(container, slot);
       return; // 每次激活只放 1 格
@@ -118,9 +106,7 @@ function machineCut(machine: Block, container: Container): void {
 function machineActivate(machine: Block): void {
   const data = blockStorage.readFromBlock(machine);
   if (!data) return;
-  const entity = getEntitySafe(data.entityId);
-  if (!entity) return;
-  const container = getEntityContainer(entity);
+  const container = getBlockContainer(machine);
   if (!container) return;
   if (data.type === "place") {
     machinePlace(machine, container);
@@ -156,14 +142,10 @@ function syncItemInventoryToBlock(item: ItemStack, block: Block): void {
 function handleMachinePlaced(machine: Block): void {
   const key = locationKey(machine.location, machine.dimension);
   if (blockStorage.readFromBlock(machine)) return;
-  const entity = spawnContainerEntity(machine);
-  if (!entity) return;
   const type: "place" | "cut" =
     machine.typeId === AddonBlock.PlaceBlock ? "place" : "cut";
-  entity.setDynamicProperty("redstoneplugin:machineKey", key);
-  entity.setDynamicProperty("redstoneplugin:machineType", type);
-  blockStorage.writeToBlock(machine, { entityId: entity.id, type });
-  blockStorage.placeData(key, { entityId: entity.id, type });
+  blockStorage.writeToBlock(machine, { type });
+  blockStorage.placeData(key, { type });
 }
 
 function handleMachineRemoved(location: Vector3, dimension: Dimension): void {
@@ -175,22 +157,19 @@ function handleMachineRemoved(location: Vector3, dimension: Dimension): void {
   if (block) blockStorage.clearBlock(block);
   blockStorage.deleteData(key);
 
-  // 兜底：活塞推后 DP 可能丢失或 key 不匹配，按位置搜容器实体，
-  // 但必须验证 machineKey 动态属性匹配才 kill，防止误伤
-  if (!data) {
-    const fallback = findMatchingContainerEntity(location, dimension, key);
-    if (fallback) {
+  if (!data) return;
+
+  // 从方块容器中取出所有物品并掉落
+  if (block) {
+    const container = getBlockContainer(block);
+    if (container) {
       const items: ItemStack[] = [];
-      const container = getEntityContainer(fallback);
-      if (container) {
-        for (let i = 0; i < container.size; i++) {
-          const item = container.getItem(i);
-          if (!item) continue;
-          container.setItem(i);
-          items.push(item);
-        }
+      for (let i = 0; i < container.size; i++) {
+        const item = container.getItem(i);
+        if (!item) continue;
+        container.setItem(i);
+        items.push(item);
       }
-      removeEntitySafe(fallback);
       for (const item of items) {
         try {
           dimension.spawnItem(item, location);
@@ -199,57 +178,12 @@ function handleMachineRemoved(location: Vector3, dimension: Dimension): void {
         }
       }
     }
-    return;
   }
-  const entity = getEntitySafe(data.entityId);
-  if (!entity) return;
-  const container = getEntityContainer(entity);
-  const items: ItemStack[] = [];
-  if (container) {
-    for (let i = 0; i < container.size; i++) {
-      const item = container.getItem(i);
-      if (!item) continue;
-      container.setItem(i);
-      items.push(item);
-    }
-  }
-  removeEntitySafe(entity);
-  for (const item of items) {
-    try {
-      dimension.spawnItem(item, location);
-    } catch {
-      /* ignore */
-    }
-  }
-}
-
-/** 在 pos 附近搜索属于本机器的容器实体（兜底清理用，验证 machineKey） */
-function findMatchingContainerEntity(
-  pos: Vector3,
-  dim: Dimension,
-  expectedKey: string,
-): Entity | undefined {
-  try {
-    const entities = dim.getEntities({
-      location: pos,
-      volume: { x: 3, y: 3, z: 3 },
-      type: CONTAINER_ENTITY_TYPE,
-    });
-    for (const e of entities) {
-      const entityKey = e.getDynamicProperty("redstoneplugin:machineKey");
-      if (entityKey === expectedKey) return e;
-    }
-  } catch {
-    /* ignore */
-  }
-  return undefined;
 }
 
 // ---------- 实体维护 ----------
 
 function resetEntry(entry: BlockStorageEntry): void {
-  const entity = getEntitySafe(entry.data.entityId);
-  if (entity) removeEntitySafe(entity);
   try {
     const [loc, dim] = locationKeyToData(entry.key);
     const block = dim.getBlock(loc);
@@ -260,113 +194,14 @@ function resetEntry(entry: BlockStorageEntry): void {
   blockStorage.deleteData(entry.key);
 }
 
-function scheduleEntityRecheck(key: string): void {
-  if (pendingEntityChecks.has(key)) return;
-  pendingEntityChecks.add(key);
-  system.runTimeout(() => {
-    pendingEntityChecks.delete(key);
-    verifyEntityExists(key);
-  }, ENTITY_RECHECK_DELAY);
-}
-function addFloat(location: Vector3) {
-  return {
-    x: location.x,
-    y: location.y + 0.5,
-    z: location.z,
-  };
-}
-function verifyEntityExists(key: string): void {
-  const [loc, dim] = locationKeyToData(key);
-  let block: Block | undefined;
-  try {
-    block = dim.getBlock(loc);
-  } catch {
-    return;
-  }
-  const data =
-    (block && blockStorage.readFromBlock(block)) || blockStorage.getData(key);
-  if (!data) return;
-  let blockAlive = false;
-  try {
-    blockAlive = !!block && MACHINE_TYPES.has(block.typeId);
-  } catch {
-    return;
-  }
-  if (!blockAlive) {
-    const neighbor = findMachineBlockNeighbor(loc, dim);
-    if (neighbor) {
-      const newKey = locationKey(neighbor.location, neighbor.dimension);
-      if (blockStorage.moveData(key, newKey)) {
-        const e = getEntitySafe(data.entityId);
-        if (e) teleportEntitySafe(e, addFloat(neighbor.location));
-      }
-      return;
-    }
-    if (hasMovingBlockNearby(loc, dim)) return;
-    resetEntry({ key, data });
-    return;
-  }
-  if (!getEntitySafe(data.entityId)) {
-    resetEntry({ key, data });
-  }
-}
-
-// ---------- 活塞推动 ----------
-
-function handlePistonMove(block: Block, moveDir: Vector3): void {
-  const isMachine =
-    MACHINE_TYPES.has(block.typeId) ||
-    block.typeId === "minecraft:moving_block";
-  if (!isMachine) return;
-  const currentKey = locationKey(block.location, block.dimension);
-
-  const oldKey = locationKey(sub(block.location, moveDir), block.dimension);
-  if (blockStorage.has(oldKey) && !blockStorage.has(currentKey)) {
-    moveMachineEntry(block, oldKey, currentKey, addFloat(block.location));
-    return;
-  }
-  if (blockStorage.has(currentKey)) {
-    const newKey = locationKey(add(block.location, moveDir), block.dimension);
-    moveMachineEntry(
-      block,
-      currentKey,
-      newKey,
-      addFloat(add(block.location, moveDir)),
-    );
-  }
-}
-
-function moveMachineEntry(
-  block: Block,
-  oldKey: string,
-  newKey: string,
-  newLocation: Vector3,
-): void {
-  const data =
-    blockStorage.getData(oldKey) || blockStorage.readFromBlock(block);
-  if (!data) return;
-  const entity = getEntitySafe(data.entityId);
-  if (entity) {
-    teleportEntitySafe(entity, newLocation);
-    entity.setDynamicProperty("redstoneplugin:machineKey", newKey);
-  }
-  blockStorage.moveData(oldKey, newKey);
-}
-
 function maintenanceHandleMachine(block: Block): void {
   const key = locationKey(block.location, block.dimension);
   const blockData = blockStorage.readFromBlock(block);
   if (blockData) {
     const regData = blockStorage.getData(key);
-    if (!regData || regData.entityId !== blockData.entityId) {
+    if (!regData || regData.type !== blockData.type) {
       blockStorage.placeData(key, blockData);
     }
-    const entity = getEntitySafe(blockData.entityId);
-    if (!entity) {
-      scheduleEntityRecheck(key);
-      return;
-    }
-    alignEntityToMachine(entity, block);
     return;
   }
   const regData = blockStorage.getData(key);
@@ -403,6 +238,26 @@ function startMaintenanceLoop(): void {
       }
     }
   }, MAINTENANCE_INTERVAL);
+}
+
+// ---------- 活塞推动 ----------
+
+function handlePistonMove(block: Block, moveDir: Vector3): void {
+  const isMachine =
+    MACHINE_TYPES.has(block.typeId) ||
+    block.typeId === "minecraft:moving_block";
+  if (!isMachine) return;
+  const currentKey = locationKey(block.location, block.dimension);
+
+  const oldKey = locationKey(sub(block.location, moveDir), block.dimension);
+  if (blockStorage.has(oldKey) && !blockStorage.has(currentKey)) {
+    blockStorage.moveData(oldKey, currentKey);
+    return;
+  }
+  if (blockStorage.has(currentKey)) {
+    const newKey = locationKey(add(block.location, moveDir), block.dimension);
+    blockStorage.moveData(currentKey, newKey);
+  }
 }
 
 // ---------- 红石组件 ----------

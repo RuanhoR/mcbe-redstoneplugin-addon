@@ -6,8 +6,6 @@ import {
 import { DP_KEY } from "../config";
 
 export type BlockStorageData = {
-  /** 容器实体唯一 id */
-  entityId: string;
   /** 机器类型: place 或 cut */
   type: "place" | "cut";
 };
@@ -47,18 +45,18 @@ export class blockStorage {
   public static readFromBlock(block: Block): BlockStorageData | undefined {
     const dp = this.getDP(block);
     if (!dp) return undefined;
-    const entityId = dp.get(DP_KEY);
-    if (typeof entityId !== "string") return undefined;
+    const isMachine = dp.get(DP_KEY);
+    if (isMachine !== true) return undefined;
     const type = dp.get(DP_KEY + ":type");
     if (type !== "place" && type !== "cut") return undefined;
-    return { entityId, type };
+    return { type };
   }
 
   /** 把机器数据写入方块（place 时调用） */
   public static writeToBlock(block: Block, data: BlockStorageData): void {
     const dp = this.getDP(block);
     if (!dp) return;
-    dp.set(DP_KEY, data.entityId);
+    dp.set(DP_KEY, true);
     dp.set(DP_KEY + ":type", data.type);
   }
 

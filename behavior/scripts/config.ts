@@ -5,9 +5,6 @@ export enum AddonBlock {
   CutBlock = "redstoneplugin:cutblock",
 }
 
-/** 容器实体 typeId */
-export const CONTAINER_ENTITY_TYPE = "redstoneplugin:container_entity";
-
 /** 自定义方块组件 ID */
 export const CUSTOM_COMPONENT_ID = "redstoneplugin:controller";
 
@@ -21,8 +18,6 @@ export const MACHINE_TYPES = new Set<string>([
 
 /** 维护循环的执行周期（tick） */
 export const MAINTENANCE_INTERVAL = 10;
-/** 实体缺失后延迟复查的 tick 数 */
-export const ENTITY_RECHECK_DELAY = 4;
 
 // ---------- 搜索范围 ----------
 
