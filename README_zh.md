@@ -1,5 +1,8 @@
 # RedStone Plugin
 
+> [!NOTE]
+> 本项目已迁移至 [mcx-example-addon](https://github.com/RuanhoR/mcx-example-addon) monorepo 统一管理。本仓库保留作历史存档。
+
 Minecraft 基岩版 addon：红石驱动的放置器/挖掘器机器系统。
 
 ## 功能

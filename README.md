@@ -1,5 +1,8 @@
 # RedStone Plugin
 
+> [!NOTE]
+> This addon has moved into the [mcx-example-addon](https://github.com/RuanhoR/mcx-example-addon) monorepo and is now maintained there as a pnpm workspace package. This repository is kept for history.
+
 Minecraft Bedrock Edition addon: redstone-driven Placer/Cutter machine system.
 
 ## Features
